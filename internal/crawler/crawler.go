@@ -10,15 +10,15 @@ import (
 )
 
 type Crawler struct {
-	cfg       config.Config
-	jobs      chan Job
-	visited   *VisitedStore
-	wg        *WaitGroupWrapper
-	fetcher   *fetcher.Fetcher
-	baseURL   *url.URL
-	startTime time.Time
+	cfg         config.Config
+	jobs        chan Job
+	visited     *VisitedStore
+	wg          *WaitGroupWrapper
+	fetcher     *fetcher.Fetcher
+	baseURL     *url.URL
+	startTime   time.Time
+	rateLimiter *RateLimiter
 }
-
 
 // NewCrawler initializes the crawler
 func NewCrawler(cfg config.Config) (*Crawler, error) {
@@ -28,12 +28,13 @@ func NewCrawler(cfg config.Config) (*Crawler, error) {
 	}
 
 	return &Crawler{
-		cfg:     cfg,
-		jobs:    make(chan Job, 100),
-		visited: NewVisitedStore(cfg.MaxPages),
-		wg:      &WaitGroupWrapper{},
-		fetcher: fetcher.New(cfg.Timeout),
-		baseURL: base,
+		cfg:         cfg,
+		jobs:        make(chan Job, 100),
+		visited:     NewVisitedStore(cfg.MaxPages),
+		wg:          &WaitGroupWrapper{},
+		fetcher:     fetcher.New(cfg.Timeout),
+		baseURL:     base,
+		rateLimiter: NewRateLimiter(cfg.RateLimit),
 	}, nil
 }
 
@@ -50,6 +51,7 @@ func (c *Crawler) Start() {
 			c.baseURL,
 			c.jobs,
 			c.wg,
+			c.rateLimiter,
 		)
 		go worker.Run(i)
 	}
@@ -68,8 +70,8 @@ func (c *Crawler) Start() {
 	close(c.jobs)
 
 	c.printStats()
+	c.rateLimiter.Stop()
 }
-
 
 func (c *Crawler) printStats() {
 	elapsed := time.Since(c.startTime).Seconds()

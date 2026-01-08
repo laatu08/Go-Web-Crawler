@@ -16,12 +16,13 @@ type Job struct {
 }
 
 type Worker struct {
-	cfg     config.Config
-	fetcher *fetcher.Fetcher
-	visited *VisitedStore
-	baseURL *url.URL
-	jobs    chan Job
-	wg      *WaitGroupWrapper
+	cfg         config.Config
+	fetcher     *fetcher.Fetcher
+	visited     *VisitedStore
+	baseURL     *url.URL
+	jobs        chan Job
+	wg          *WaitGroupWrapper
+	rateLimiter *RateLimiter
 }
 
 // NewWorker creates a worker instance
@@ -32,14 +33,16 @@ func NewWorker(
 	base *url.URL,
 	jobs chan Job,
 	wg *WaitGroupWrapper,
+	rl *RateLimiter,
 ) *Worker {
 	return &Worker{
-		cfg:     cfg,
-		fetcher: f,
-		visited: v,
-		baseURL: base,
-		jobs:    jobs,
-		wg:      wg,
+		cfg:         cfg,
+		fetcher:     f,
+		visited:     v,
+		baseURL:     base,
+		jobs:        jobs,
+		wg:          wg,
+		rateLimiter: rl,
 	}
 }
 
@@ -57,6 +60,8 @@ func (w *Worker) process(job Job, id int) {
 	}
 
 	// log.Printf("[Worker %d] Crawling: %s (depth=%d)", id, job.URL, job.Depth)
+
+	w.rateLimiter.Acquire()
 
 	body, err := w.fetcher.Fetch(job.URL)
 	if err != nil {
