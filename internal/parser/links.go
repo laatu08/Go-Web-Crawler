@@ -39,6 +39,10 @@ func ExtractLinks(body io.Reader, baseURL *url.URL, sameDomain bool) []string {
 	return links
 }
 
+func sameSite(host, baseHost string) bool {
+	return host == baseHost || strings.HasSuffix(host, "."+baseHost)
+}
+
 func normalize(href string, base *url.URL, sameDomain bool) string {
 	href = strings.TrimSpace(href)
 
@@ -59,7 +63,11 @@ func normalize(href string, base *url.URL, sameDomain bool) string {
 	abs := base.ResolveReference(u)
 
 	// Enforce same-domain crawling if required
-	if sameDomain && abs.Host != base.Host {
+	// if sameDomain && abs.Host != base.Host {
+	// 	return ""
+	// }
+
+	if sameDomain && !sameSite(abs.Host, base.Host) {
 		return ""
 	}
 

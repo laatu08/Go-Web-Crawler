@@ -20,7 +20,18 @@ func New(timeout time.Duration) *Fetcher {
 }
 
 func (f *Fetcher) Fetch(url string) (io.ReadCloser, error) {
-	resp, err := f.client.Get(url)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// IMPORTANT: Real User-Agent
+	req.Header.Set(
+		"User-Agent",
+		"Mozilla/5.0 (compatible; GoWebCrawler/1.0; +https://example.com/bot-info)",
+	)
+
+	resp, err := f.client.Do(req)
 	if err != nil {
 		return nil, err
 	}

@@ -56,14 +56,16 @@ func (w *Worker) process(job Job, id int) {
 		return
 	}
 
+	// log.Printf("[Worker %d] Crawling: %s (depth=%d)", id, job.URL, job.Depth)
+
 	body, err := w.fetcher.Fetch(job.URL)
 	if err != nil {
-		log.Printf("[Worker %d] fetch error: %s\n", id, job.URL)
+		log.Printf("[Worker %d] fetch error: %s (%v)", id, job.URL, err)
 		return
 	}
-	defer body.Close()
 
 	links := parser.ExtractLinks(body, w.baseURL, w.cfg.SameDomain)
+	// log.Printf("[Worker %d] Found %d links on %s", id, len(links), job.URL)
 
 	for _, link := range links {
 		if !w.visited.TryVisit(link) {
