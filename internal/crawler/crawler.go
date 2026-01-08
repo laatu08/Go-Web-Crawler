@@ -1,20 +1,24 @@
 package crawler
 
 import (
+	"log"
 	"net/url"
+	"time"
 
 	"concurrent-web-crawler/internal/config"
 	"concurrent-web-crawler/internal/fetcher"
 )
 
 type Crawler struct {
-	cfg     config.Config
-	jobs    chan Job
-	visited *VisitedStore
-	wg      *WaitGroupWrapper
-	fetcher *fetcher.Fetcher
-	baseURL *url.URL
+	cfg       config.Config
+	jobs      chan Job
+	visited   *VisitedStore
+	wg        *WaitGroupWrapper
+	fetcher   *fetcher.Fetcher
+	baseURL   *url.URL
+	startTime time.Time
 }
+
 
 // NewCrawler initializes the crawler
 func NewCrawler(cfg config.Config) (*Crawler, error) {
@@ -35,6 +39,8 @@ func NewCrawler(cfg config.Config) (*Crawler, error) {
 
 // Start begins crawling
 func (c *Crawler) Start() {
+	c.startTime = time.Now()
+
 	// Start workers
 	for i := 1; i <= c.cfg.Workers; i++ {
 		worker := NewWorker(
@@ -57,7 +63,30 @@ func (c *Crawler) Start() {
 		}
 	}
 
-	// Wait until all jobs finish
+	// Wait for crawl completion
 	c.wg.Wait()
 	close(c.jobs)
+
+	c.printStats()
+}
+
+
+func (c *Crawler) printStats() {
+	elapsed := time.Since(c.startTime).Seconds()
+
+	log.Printf(
+		"[INFO] Pages crawled: %d / %d",
+		c.visited.Count(),
+		c.cfg.MaxPages,
+	)
+
+	log.Printf(
+		"[INFO] Queue length: %d",
+		len(c.jobs),
+	)
+
+	log.Printf(
+		"[INFO] Crawl complete in %.2fs",
+		elapsed,
+	)
 }

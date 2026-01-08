@@ -65,7 +65,24 @@ func (w *Worker) process(job Job, id int) {
 	}
 
 	links := parser.ExtractLinks(body, w.baseURL, w.cfg.SameDomain)
-	// log.Printf("[Worker %d] Found %d links on %s", id, len(links), job.URL)
+	accepted := 0
+	for _, link := range links {
+		if !w.visited.TryVisit(link) {
+			continue
+		}
+		accepted++
+		w.wg.Add(1)
+		w.jobs <- Job{URL: link, Depth: job.Depth + 1}
+	}
+
+	log.Printf(
+		"[Worker %d] Extracted=%d | Accepted=%d | Skipped=%d | %s",
+		id,
+		len(links),
+		accepted,
+		len(links)-accepted,
+		job.URL,
+	)
 
 	for _, link := range links {
 		if !w.visited.TryVisit(link) {

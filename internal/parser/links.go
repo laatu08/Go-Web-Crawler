@@ -43,6 +43,26 @@ func sameSite(host, baseHost string) bool {
 	return host == baseHost || strings.HasSuffix(host, "."+baseHost)
 }
 
+func isValidWikiArticle(u *url.URL) bool {
+	if !strings.HasPrefix(u.Path, "/wiki/") {
+		return false
+	}
+
+	// Exclude special namespaces
+	blacklist := []string{
+		":",
+		"/wiki/Main_Page",
+	}
+
+	for _, b := range blacklist {
+		if strings.Contains(u.Path, b) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func normalize(href string, base *url.URL, sameDomain bool) string {
 	href = strings.TrimSpace(href)
 
@@ -61,6 +81,12 @@ func normalize(href string, base *url.URL, sameDomain bool) string {
 
 	// Resolve relative URLs
 	abs := base.ResolveReference(u)
+
+	if strings.Contains(base.Host, "wikipedia.org") {
+		if !isValidWikiArticle(abs) {
+			return ""
+		}
+	}
 
 	// Enforce same-domain crawling if required
 	// if sameDomain && abs.Host != base.Host {
