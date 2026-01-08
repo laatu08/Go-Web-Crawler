@@ -80,14 +80,14 @@ func (w *Worker) process(job Job, id int) {
 		w.jobs <- Job{URL: link, Depth: job.Depth + 1}
 	}
 
-	log.Printf(
-		"[Worker %d] Extracted=%d | Accepted=%d | Skipped=%d | %s",
-		id,
-		len(links),
-		accepted,
-		len(links)-accepted,
-		job.URL,
-	)
+	// log.Printf(
+	// 	"[Worker %d] Extracted=%d | Accepted=%d | Skipped=%d | %s",
+	// 	id,
+	// 	len(links),
+	// 	accepted,
+	// 	len(links)-accepted,
+	// 	job.URL,
+	// )
 
 	for _, link := range links {
 		if !w.visited.TryVisit(link) {

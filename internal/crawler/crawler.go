@@ -18,6 +18,8 @@ type Crawler struct {
 	baseURL     *url.URL
 	startTime   time.Time
 	rateLimiter *RateLimiter
+	statsTicker *time.Ticker
+	done        chan struct{}
 }
 
 // NewCrawler initializes the crawler
@@ -35,12 +37,14 @@ func NewCrawler(cfg config.Config) (*Crawler, error) {
 		fetcher:     fetcher.New(cfg.Timeout),
 		baseURL:     base,
 		rateLimiter: NewRateLimiter(cfg.RateLimit),
+		done:        make(chan struct{}),
 	}, nil
 }
 
 // Start begins crawling
 func (c *Crawler) Start() {
 	c.startTime = time.Now()
+	c.startProgressLogger()
 
 	// Start workers
 	for i := 1; i <= c.cfg.Workers; i++ {
@@ -71,6 +75,7 @@ func (c *Crawler) Start() {
 
 	c.printStats()
 	c.rateLimiter.Stop()
+	c.statsTicker.Stop()
 }
 
 func (c *Crawler) printStats() {
@@ -91,4 +96,26 @@ func (c *Crawler) printStats() {
 		"[INFO] Crawl complete in %.2fs",
 		elapsed,
 	)
+}
+
+
+func (c *Crawler) startProgressLogger() {
+	c.statsTicker = time.NewTicker(1 * time.Second)
+
+	go func() {
+		for {
+			select {
+			case <-c.statsTicker.C:
+				elapsed := time.Since(c.startTime).Seconds()
+				log.Printf(
+					"[STATS] Crawled=%d | Queue=%d | Elapsed=%.1fs",
+					c.visited.Count(),
+					len(c.jobs),
+					elapsed,
+				)
+			case <-c.done:
+				return
+			}
+		}
+	}()
 }
