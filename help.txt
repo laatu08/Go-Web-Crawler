@@ -1,0 +1,5 @@
+dot -V
+dot -Tpng crawl_graph.dot -o crawl_graph.png
+dot -Tsvg crawl_graph.dot -o crawl_graph.svg
+sfdp -Tsvg crawl_graph.dot -o crawl_graph.svg
+sfdp -Tpng crawl_graph.dot -o crawl_graph.png
