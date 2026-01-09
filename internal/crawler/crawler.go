@@ -110,6 +110,14 @@ func (c *Crawler) printStats() {
 		log.Printf("  Depth %d → %d pages", depth, stats[depth])
 	}
 	c.printGraphStats()
+
+	err := c.graph.ExportDOT("crawl_graph.dot")
+	if err != nil {
+		log.Printf("[WARN] Failed to export crawl graph: %v", err)
+	} else {
+		log.Println("[INFO] Crawl graph exported to crawl_graph.dot")
+	}
+
 }
 
 func (c *Crawler) startProgressLogger() {
