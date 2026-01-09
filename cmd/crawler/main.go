@@ -12,7 +12,20 @@ import (
 )
 
 func main() {
-	// ---------- CLI flags ----------
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), `
+Concurrent Web Crawler
+
+Usage:
+  crawler [flags] <seed-url>
+
+Example:
+  crawler --workers 8 --rate 2 --depth 3 https://en.wikipedia.org/wiki/India
+
+Flags:
+`)
+		flag.PrintDefaults()
+	}
 	// ---------- CLI flags ----------
 	workers := flag.Int("workers", 0, "number of concurrent workers")
 	rate := flag.Int("rate", 0, "requests per second (global)")
