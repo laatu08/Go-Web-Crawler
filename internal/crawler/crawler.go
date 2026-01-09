@@ -111,7 +111,7 @@ func (c *Crawler) printStats() {
 	}
 	c.printGraphStats()
 
-	err := c.graph.ExportDOT("crawl_graph.dot")
+	err := c.graph.ExportDOT(c.cfg.OutputFile)
 	if err != nil {
 		log.Printf("[WARN] Failed to export crawl graph: %v", err)
 	} else {

@@ -11,6 +11,7 @@ type Config struct {
 	SameDomain bool          // crawl only same domain
 	RateLimit  int           // requests per second
 	UserAgent  string
+	OutputFile string
 }
 
 // DefaultConfig returns defaults
@@ -24,5 +25,6 @@ func DefaultConfig(seed string) Config {
 		SameDomain: true,
 		RateLimit:  2,
 		UserAgent:  "GoWebCrawler/1.0 (+https://example.com/bot-info)",
+		OutputFile: "crawl_graph.dot",
 	}
 }

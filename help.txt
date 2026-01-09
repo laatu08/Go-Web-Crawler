@@ -3,3 +3,7 @@ dot -Tpng crawl_graph.dot -o crawl_graph.png
 dot -Tsvg crawl_graph.dot -o crawl_graph.svg
 sfdp -Tsvg crawl_graph.dot -o crawl_graph.svg
 sfdp -Tpng crawl_graph.dot -o crawl_graph.png
+
+go run cmd/crawler/main.go https://en.wikipedia.org/wiki/India --workers 8 --rate 2 --depth 3 --max-pages 300 --timeout 15
+
+go run cmd/crawler/main.go --workers 8 --rate 2 --depth 3 --max-pages 300 --timeout 15 --same-domain=true --user-agent "MyCrawler/1.0" --output india.dot https://en.wikipedia.org/wiki/India
