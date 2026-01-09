@@ -72,7 +72,7 @@ func (w *Worker) process(job Job, id int) {
 	links := parser.ExtractLinks(body, w.baseURL, w.cfg.SameDomain)
 	accepted := 0
 	for _, link := range links {
-		if !w.visited.TryVisit(link) {
+		if !w.visited.TryVisit(link, job.Depth+1) {
 			continue
 		}
 		accepted++
@@ -90,7 +90,7 @@ func (w *Worker) process(job Job, id int) {
 	// )
 
 	for _, link := range links {
-		if !w.visited.TryVisit(link) {
+		if !w.visited.TryVisit(link, job.Depth+1) {
 			continue
 		}
 

@@ -61,7 +61,7 @@ func (c *Crawler) Start() {
 	}
 
 	// Seed URL
-	if c.visited.TryVisit(c.cfg.SeedURL) {
+	if c.visited.TryVisit(c.cfg.SeedURL,0) {
 		c.wg.Add(1)
 		c.jobs <- Job{
 			URL:   c.cfg.SeedURL,
@@ -96,6 +96,12 @@ func (c *Crawler) printStats() {
 		"[INFO] Crawl complete in %.2fs",
 		elapsed,
 	)
+
+	log.Println("[INFO] Pages by depth:")
+	stats := c.visited.DepthStats()
+	for depth := 0; depth <= c.cfg.MaxDepth; depth++ {
+		log.Printf("  Depth %d → %d pages", depth, stats[depth])
+	}
 }
 
 
