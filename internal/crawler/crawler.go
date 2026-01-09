@@ -21,6 +21,7 @@ type Crawler struct {
 	statsTicker *time.Ticker
 	done        chan struct{}
 	robots      *RobotsChecker
+	graph       *CrawlGraph
 }
 
 // NewCrawler initializes the crawler
@@ -40,6 +41,7 @@ func NewCrawler(cfg config.Config) (*Crawler, error) {
 		rateLimiter: NewRateLimiter(cfg.RateLimit),
 		done:        make(chan struct{}),
 		robots:      NewRobotsChecker(cfg.UserAgent),
+		graph:       NewCrawlGraph(),
 	}, nil
 }
 
@@ -59,7 +61,9 @@ func (c *Crawler) Start() {
 			c.wg,
 			c.rateLimiter,
 			c.robots,
+			c.graph,
 		)
+
 		go worker.Run(i)
 	}
 
@@ -105,6 +109,7 @@ func (c *Crawler) printStats() {
 	for depth := 0; depth <= c.cfg.MaxDepth; depth++ {
 		log.Printf("  Depth %d → %d pages", depth, stats[depth])
 	}
+	c.printGraphStats()
 }
 
 func (c *Crawler) startProgressLogger() {
@@ -126,4 +131,16 @@ func (c *Crawler) startProgressLogger() {
 			}
 		}
 	}()
+}
+
+func (c *Crawler) printGraphStats() {
+	edges := c.graph.Edges()
+
+	totalEdges := 0
+	for _, tos := range edges {
+		totalEdges += len(tos)
+	}
+
+	log.Printf("[INFO] Crawl graph nodes: %d", len(edges))
+	log.Printf("[INFO] Crawl graph edges: %d", totalEdges)
 }

@@ -24,6 +24,7 @@ type Worker struct {
 	wg          *WaitGroupWrapper
 	rateLimiter *RateLimiter
 	robots      *RobotsChecker
+	graph       *CrawlGraph
 }
 
 // NewWorker creates a worker instance
@@ -36,6 +37,7 @@ func NewWorker(
 	wg *WaitGroupWrapper,
 	rl *RateLimiter,
 	robots *RobotsChecker,
+	graph *CrawlGraph,
 ) *Worker {
 	return &Worker{
 		cfg:         cfg,
@@ -46,6 +48,7 @@ func NewWorker(
 		wg:          wg,
 		rateLimiter: rl,
 		robots:      robots,
+		graph:       graph,
 	}
 }
 
@@ -76,14 +79,20 @@ func (w *Worker) process(job Job, id int) {
 	}
 
 	links := parser.ExtractLinks(body, w.baseURL, w.cfg.SameDomain)
-	accepted := 0
+	// accepted := 0
 	for _, link := range links {
+		// record graph edge regardless of visit success
+		w.graph.AddEdge(job.URL, link)
+
 		if !w.visited.TryVisit(link, job.Depth+1) {
 			continue
 		}
-		accepted++
+
 		w.wg.Add(1)
-		w.jobs <- Job{URL: link, Depth: job.Depth + 1}
+		w.jobs <- Job{
+			URL:   link,
+			Depth: job.Depth + 1,
+		}
 	}
 
 	// log.Printf(
