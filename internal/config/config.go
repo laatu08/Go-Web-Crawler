@@ -10,7 +10,7 @@ type Config struct {
 	Timeout    time.Duration // HTTP timeout
 	SameDomain bool          // crawl only same domain
 	RateLimit  int           // requests per second
-
+	UserAgent  string
 }
 
 // DefaultConfig returns defaults
@@ -23,5 +23,6 @@ func DefaultConfig(seed string) Config {
 		Timeout:    10 * time.Second,
 		SameDomain: true,
 		RateLimit:  2,
+		UserAgent:  "GoWebCrawler/1.0 (+https://example.com/bot-info)",
 	}
 }

@@ -23,6 +23,7 @@ type Worker struct {
 	jobs        chan Job
 	wg          *WaitGroupWrapper
 	rateLimiter *RateLimiter
+	robots      *RobotsChecker
 }
 
 // NewWorker creates a worker instance
@@ -34,6 +35,7 @@ func NewWorker(
 	jobs chan Job,
 	wg *WaitGroupWrapper,
 	rl *RateLimiter,
+	robots *RobotsChecker,
 ) *Worker {
 	return &Worker{
 		cfg:         cfg,
@@ -43,6 +45,7 @@ func NewWorker(
 		jobs:        jobs,
 		wg:          wg,
 		rateLimiter: rl,
+		robots:      robots,
 	}
 }
 
@@ -59,7 +62,10 @@ func (w *Worker) process(job Job, id int) {
 		return
 	}
 
-	// log.Printf("[Worker %d] Crawling: %s (depth=%d)", id, job.URL, job.Depth)
+	if !w.robots.Allowed(job.URL) {
+		log.Printf("[Worker %d] BLOCKED by robots.txt: %s", id, job.URL)
+		return
+	}
 
 	w.rateLimiter.Acquire()
 

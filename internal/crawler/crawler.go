@@ -20,6 +20,7 @@ type Crawler struct {
 	rateLimiter *RateLimiter
 	statsTicker *time.Ticker
 	done        chan struct{}
+	robots      *RobotsChecker
 }
 
 // NewCrawler initializes the crawler
@@ -38,6 +39,7 @@ func NewCrawler(cfg config.Config) (*Crawler, error) {
 		baseURL:     base,
 		rateLimiter: NewRateLimiter(cfg.RateLimit),
 		done:        make(chan struct{}),
+		robots:      NewRobotsChecker(cfg.UserAgent),
 	}, nil
 }
 
@@ -56,12 +58,13 @@ func (c *Crawler) Start() {
 			c.jobs,
 			c.wg,
 			c.rateLimiter,
+			c.robots,
 		)
 		go worker.Run(i)
 	}
 
 	// Seed URL
-	if c.visited.TryVisit(c.cfg.SeedURL,0) {
+	if c.visited.TryVisit(c.cfg.SeedURL, 0) {
 		c.wg.Add(1)
 		c.jobs <- Job{
 			URL:   c.cfg.SeedURL,
@@ -103,7 +106,6 @@ func (c *Crawler) printStats() {
 		log.Printf("  Depth %d → %d pages", depth, stats[depth])
 	}
 }
-
 
 func (c *Crawler) startProgressLogger() {
 	c.statsTicker = time.NewTicker(1 * time.Second)
