@@ -78,6 +78,7 @@ func (c *Crawler) Start() {
 
 	// Wait for crawl completion
 	c.wg.Wait()
+	close(c.done)
 	close(c.jobs)
 
 	c.printStats()

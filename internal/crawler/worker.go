@@ -104,15 +104,15 @@ func (w *Worker) process(job Job, id int) {
 	// 	job.URL,
 	// )
 
-	for _, link := range links {
-		if !w.visited.TryVisit(link, job.Depth+1) {
-			continue
-		}
+	// for _, link := range links {
+	// 	if !w.visited.TryVisit(link, job.Depth+1) {
+	// 		continue
+	// 	}
 
-		w.wg.Add(1)
-		w.jobs <- Job{
-			URL:   link,
-			Depth: job.Depth + 1,
-		}
-	}
+	// 	w.wg.Add(1)
+	// 	w.jobs <- Job{
+	// 		URL:   link,
+	// 		Depth: job.Depth + 1,
+	// 	}
+	// }
 }

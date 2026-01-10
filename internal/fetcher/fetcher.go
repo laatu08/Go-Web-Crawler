@@ -25,7 +25,6 @@ func (f *Fetcher) Fetch(url string) (io.ReadCloser, error) {
 		return nil, err
 	}
 
-	// IMPORTANT: Real User-Agent
 	req.Header.Set(
 		"User-Agent",
 		"Mozilla/5.0 (compatible; GoWebCrawler/1.0; +https://example.com/bot-info)",
